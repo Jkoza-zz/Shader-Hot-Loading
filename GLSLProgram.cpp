@@ -1,11 +1,9 @@
 #include "GLSLProgram.h"
-#include "Errors.h"
 
 #include <vector>
 #include <iostream>
 #include <fstream>
 
-//The : _numAttributes(0) ect. is an initialization list. It is a better way to initialize variables, since it avoids an extra copy. 
 GLSLProgram::GLSLProgram() : _numAttributes(0), _programID(0), _vertexShaderID(0), _fragmentShaderID(0)
 {
 }
@@ -15,19 +13,9 @@ GLSLProgram::~GLSLProgram()
 {
 }
 
-//Compiles the shaders into a form that your GPU can understand
 void GLSLProgram::compileShaders(const std::string& vertexShaderFilePath, const std::string& fragmentShaderFilepath) {
-	//Create the vertex shader object, and store its ID
 	_vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-	if (_vertexShaderID == 0) {
-		std::cout << "Vertex shader failed to be created!";
-	}
-
-	//Create the fragment shader object, and store its ID
 	_fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-	if (_fragmentShaderID == 0) {
-		std::cout << "Fragment shader failed to be created!";
-	}
 
 	//Compile each shader
 	compileShader(vertexShaderFilePath, _vertexShaderID);
@@ -77,12 +65,10 @@ void GLSLProgram::linkShaders() {
 	glDeleteShader(_fragmentShaderID);
 }
 
-//Adds an attribute to our shader. SHould be called between compiling and linking.
 void GLSLProgram::addAttribute(const std::string& attributeName) {
 	glBindAttribLocation(_programID, _numAttributes++, attributeName.c_str());
 }
 
-//enable the shader, and all its attributes
 void GLSLProgram::use() {
 	glUseProgram(_programID);
 	//enable all the attributes we added with addAttribute
@@ -91,7 +77,6 @@ void GLSLProgram::use() {
 	}
 }
 
-//disable the shader
 void GLSLProgram::unuse() {
 	glUseProgram(0);
 	for (int i = 0; i < _numAttributes; i++) {
@@ -99,54 +84,41 @@ void GLSLProgram::unuse() {
 	}
 }
 
-//Compiles a single shader file
-void GLSLProgram::compileShader(const std::string& filePath, GLuint id) {
+void GLSLProgram::releaseShaders()
+{
+	glDetachShader(_programID, _vertexShaderID);
+	glDetachShader(_programID, _fragmentShaderID);
+	glDeleteShader(_vertexShaderID);
+	glDeleteShader(_fragmentShaderID);
+	glUseProgram(0);
+	glDeleteProgram(_programID);
+}
 
-	//Open the file
+void GLSLProgram::compileShader(const std::string& filePath, GLuint id) {
 	std::ifstream shaderFile(filePath);
 	if (shaderFile.fail()) {
 		perror(filePath.c_str());
 		std::cout << "Failed to open ";
 	}
 
-	//File contents stores all the text in the file
 	std::string fileContents = "";
-	//line is used to grab each line of the file
 	std::string line;
-
-	//Get all the lines in the file and add it to the contents
-	while (std::getline(shaderFile, line)) {
+	while (std::getline(shaderFile, line)) 
 		fileContents += line + "\n";
-	}
-
 	shaderFile.close();
 
-	//get a pointer to our file contents c string;
 	const char* contentsPtr = fileContents.c_str();
-	//tell opengl that we want to use fileContents as the contents of the shader file
 	glShaderSource(id, 1, &contentsPtr, nullptr);
-
-	//compile the shader
 	glCompileShader(id);
-
-	//check for errors
 	GLint success = 0;
 	glGetShaderiv(id, GL_COMPILE_STATUS, &success);
-
 	if (success == GL_FALSE)
 	{
 		GLint maxLength = 0;
 		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &maxLength);
-
-		//The maxLength includes the NULL character
 		std::vector<char> errorLog(maxLength);
 		glGetShaderInfoLog(id, maxLength, &maxLength, &errorLog[0]);
-
-		//Provide the infolog in whatever manor you deem best.
-		//Exit with failure.
-		glDeleteShader(id); //Don't leak the shader.
-
-							//Print error log and quit
+		glDeleteShader(id); 
 		std::printf("%s\n", &(errorLog[0]));
 		std::cout << "Shader ";
 	}

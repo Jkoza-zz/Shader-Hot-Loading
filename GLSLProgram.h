@@ -10,7 +10,7 @@ public:
     void compileShaders(const std::string& vertexShaderFilePath, const std::string& fragmentShaderFilepath);
 
     void linkShaders();
-
+	void releaseShaders();
     void addAttribute(const std::string& attributeName);
 
     void use();

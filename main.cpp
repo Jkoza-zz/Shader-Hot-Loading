@@ -6,11 +6,21 @@ SDL_Window* _window;
 GLSLProgram _Program;
 GLuint _vboID = 0;
 bool exiting = false;
+
 void initShaders() {
-	_Program.compileShaders("Shaders/vertex.glsl", "Shaders/fragment.glsl");
+	_Program.compileShaders("C:/Users/josh/Desktop/Shader/Shaders/vertex.glsl", "C:/Users/josh/Desktop/Shader/Shaders/fragment.glsl");
 	_Program.addAttribute("vertexPosition");
 	_Program.linkShaders();
 }
+
+void reloadShaders() {
+	GLSLProgram* hold = new GLSLProgram();
+	hold->compileShaders("C:/Users/josh/Desktop/Shader/Shaders/vertex.glsl", "C:/Users/josh/Desktop/Shader/Shaders/fragment.glsl");
+	hold->addAttribute("vertexPosition");
+	hold->linkShaders();
+	_Program = *hold;
+}
+
 void draw() {
 	glClearDepth(1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -53,6 +63,7 @@ void draw() {
 	_Program.unuse();
 	SDL_GL_SwapWindow(_window);
 }
+
 void processInput() {
 	SDL_Event evnt;
 	//Will keep looping until there are no more events to process
@@ -61,12 +72,13 @@ void processInput() {
 		case SDL_QUIT:
 			exiting = true;
 			break;
-		case SDL_QUIT:
-			exiting = true;
+		case SDL_KEYDOWN:
+			reloadShaders();
 			break;
 		}
 	}
 }
+
 void initSystems() {
 	SDL_Init(SDL_INIT_EVERYTHING);
 	_window = SDL_CreateWindow("Game Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, SDL_WINDOW_OPENGL);
@@ -76,12 +88,15 @@ void initSystems() {
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 	initShaders();
 }
+
 int main(int argc, char** argv) 
 {
 	initSystems();
 	draw();
 	while(!exiting){
 		processInput();
+		//reloadShaders();
+		draw();
 	}
 	return 0;
 }

@@ -25,6 +25,10 @@
   <ItemGroup>
     <ClInclude Include="..\GLSLProgram.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Shaders\fragment.glsl" />
+    <None Include="..\Shaders\vertex.glsl" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F2A3B3D8-BD43-4229-B497-ACC6DF4082BC}</ProjectGuid>
     <RootNamespace>Shader</RootNamespace>
